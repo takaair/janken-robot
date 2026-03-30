@@ -73,6 +73,13 @@
       draw: 0
     };
 
+    // 絵文字変換
+    const emoji = {
+      'グー': '✊',
+      'チョキ': '✌',
+      'パー': '🖐'
+    };
+
     // 表示更新
     function updateScoreDisplay() {
       document.getElementById('win').textContent = score.win;
@@ -116,12 +123,48 @@
       history[userHand]++;
       localStorage.setItem('jankenHistory', JSON.stringify(history));
 
-      // ロボットの手を一旦隠す
+      // ロボットの手を先に決める（重要）
+      const robotHand = getAIHand();
+
+      // 一旦隠す
       document.getElementById('robot').textContent = "❓";
       document.getElementById('result').textContent = "";
 
-      // 0.8秒後に本当の手を表示
+      // 0.8秒後に表示
       setTimeout(() => {
-        const robotHand = getAIHand();
-
         let result = '';
+        if (userHand === robotHand) {
+          result = 'あいこ';
+          score.draw++;
+        } else if (
+          (userHand === 'グー' && robotHand === 'チョキ') ||
+          (userHand === 'チョキ' && robotHand === 'パー') ||
+          (userHand === 'パー' && robotHand === 'グー')
+        ) {
+          result = 'あなたの勝ち';
+          score.win++;
+        } else {
+          result = 'ロボットの勝ち';
+          score.lose++;
+        }
+
+        // スコア保存
+        localStorage.setItem('jankenScore', JSON.stringify(score));
+
+        // 絵文字で表示
+        document.getElementById('robot').textContent = emoji[robotHand];
+        document.getElementById('result').textContent = result;
+        updateScoreDisplay();
+      }, 800);
+    }
+
+    // スコアリセット
+    function resetScore() {
+      score = { win: 0, lose: 0, draw: 0 };
+      localStorage.setItem('jankenScore', JSON.stringify(score));
+      updateScoreDisplay();
+      alert("スコアをリセットしました");
+    }
+  </script>
+</body>
+</html>
