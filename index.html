@@ -20,6 +20,11 @@
       margin: 10px;
       cursor: pointer;
     }
+    #score {
+      margin-top: 30px;
+      font-size: 22px;
+      line-height: 1.8;
+    }
   </style>
 </head>
 <body>
@@ -32,13 +37,37 @@
   <button onclick="play('チョキ')">✌ チョキ</button>
   <button onclick="play('パー')">🖐 パー</button>
 
+  <div id="score"></div>
+
+  <button onclick="resetScore()" style="margin-top:20px; background:#ff6666; color:white;">
+    リセット
+  </button>
+
   <script>
-    // 履歴を読み込み（なければ初期化）
+    // 履歴（AI学習用）
     let history = JSON.parse(localStorage.getItem('jankenHistory')) || {
       'グー': 0,
       'チョキ': 0,
       'パー': 0
     };
+
+    // スコア（累計）
+    let score = JSON.parse(localStorage.getItem('jankenScore')) || {
+      win: 0,
+      lose: 0,
+      draw: 0
+    };
+
+    // スコア表示更新
+    function updateScoreDisplay() {
+      document.getElementById('score').innerHTML = `
+        🔵 あなたの勝ち：${score.win}<br>
+        🔴 ロボットの勝ち：${score.lose}<br>
+        ⚪ あいこ：${score.draw}
+      `;
+    }
+
+    updateScoreDisplay();
 
     function getAIHand() {
       const entries = Object.entries(history);
@@ -77,16 +106,36 @@
       const robotHand = getAIHand();
 
       let result = '';
-      if (userHand === robotHand) result = 'あいこ';
-      else if (
+      if (userHand === robotHand) {
+        result = 'あいこ';
+        score.draw++;
+      } else if (
         (userHand === 'グー' && robotHand === 'チョキ') ||
         (userHand === 'チョキ' && robotHand === 'パー') ||
         (userHand === 'パー' && robotHand === 'グー')
-      ) result = 'あなたの勝ち';
-      else result = 'ロボットの勝ち';
+      ) {
+        result = 'あなたの勝ち';
+        score.win++;
+      } else {
+        result = 'ロボットの勝ち';
+        score.lose++;
+      }
 
+      // スコア保存
+      localStorage.setItem('jankenScore', JSON.stringify(score));
+
+      // 表示更新
       document.getElementById('robot').textContent = robotHand;
       document.getElementById('result').textContent = result;
+      updateScoreDisplay();
+    }
+
+    // スコアリセット
+    function resetScore() {
+      score = { win: 0, lose: 0, draw: 0 };
+      localStorage.setItem('jankenScore', JSON.stringify(score));
+      updateScoreDisplay();
+      alert("スコアをリセットしました");
     }
   </script>
 </body>
