@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>AIジャンケンロボット</title>
+  <style>
+    body { text-align: center; font-family: sans-serif; }
+    .hand { font-size: 80px; }
+  </style>
+</head>
+<body>
+  <h1>AIジャンケンロボット</h1>
+
+  <div id="robot" class="hand">🤖</div>
+  <p id="result"></p>
+
+  <button onclick="play('グー')">✊ グー</button>
+  <button onclick="play('チョキ')">✌ チョキ</button>
+  <button onclick="play('パー')">🖐 パー</button>
+
+  <script>
+    // ユーザーの履歴を読み込み（なければ初期化）
+    let history = JSON.parse(localStorage.getItem('jankenHistory')) || {
+      'グー': 0,
+      'チョキ': 0,
+      'パー': 0
+    };
+
+    function getAIHand() {
+      // 最も多く出された手を分析
+      const entries = Object.entries(history);
+      entries.sort((a, b) => b[1] - a[1]);
+      const mostUsed = entries[0][0];
+
+      // その手に勝てる手を出す
+      const counter = {
+        'グー': 'パー',
+        'チョキ': 'グー',
+        'パー': 'チョキ'
+      };
+
+      // 80%は学習、20%はランダム（手加減）
+      if (Math.random() < 0.8) {
+        return counter[mostUsed];
+      } else {
+        const hands = ['グー', 'チョキ', 'パー'];
+        return hands[Math.floor(Math.random() * 3)];
+      }
+    }
+
+    function play(userHand) {
+      // 履歴を更新
+      history[userHand]++;
+      localStorage.setItem('jankenHistory', JSON.stringify(history));
+
+      const robotHand = getAIHand();
+
+      let result = '';
+      if (userHand === robotHand) result = 'あいこ';
+      else if (
+        (userHand === 'グー' && robotHand === 'チョキ') ||
+        (userHand === 'チョキ' && robotHand === 'パー') ||
+        (userHand === 'パー' && robotHand === 'グー')
+      ) result = 'あなたの勝ち';
+      else result = 'ロボットの勝ち';
+
+      document.getElementById('robot').textContent = robotHand;
+      document.getElementById('result').textContent = result;
+    }
+  </script>
+</body>
+</html>
