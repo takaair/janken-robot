@@ -13,6 +13,7 @@
     .hand { 
       font-size: 80px; 
       margin: 20px;
+      transition: 0.2s;
     }
     button {
       font-size: 20px;
@@ -20,10 +21,19 @@
       margin: 10px;
       cursor: pointer;
     }
-    #score {
-      margin-top: 30px;
-      font-size: 22px;
-      line-height: 1.8;
+    table {
+      margin: 30px auto;
+      border-collapse: collapse;
+      width: 300px;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      font-size: 20px;
+    }
+    th {
+      background: #e0e0e0;
     }
   </style>
 </head>
@@ -37,7 +47,12 @@
   <button onclick="play('チョキ')">✌ チョキ</button>
   <button onclick="play('パー')">🖐 パー</button>
 
-  <div id="score"></div>
+  <table>
+    <tr><th>結果</th><th>回数</th></tr>
+    <tr><td>あなたの勝ち</td><td id="win">0</td></tr>
+    <tr><td>ロボットの勝ち</td><td id="lose">0</td></tr>
+    <tr><td>あいこ</td><td id="draw">0</td></tr>
+  </table>
 
   <button onclick="resetScore()" style="margin-top:20px; background:#ff6666; color:white;">
     リセット
@@ -58,13 +73,11 @@
       draw: 0
     };
 
-    // スコア表示更新
+    // 表示更新
     function updateScoreDisplay() {
-      document.getElementById('score').innerHTML = `
-        🔵 あなたの勝ち：${score.win}<br>
-        🔴 ロボットの勝ち：${score.lose}<br>
-        ⚪ あいこ：${score.draw}
-      `;
+      document.getElementById('win').textContent = score.win;
+      document.getElementById('lose').textContent = score.lose;
+      document.getElementById('draw').textContent = score.draw;
     }
 
     updateScoreDisplay();
@@ -103,40 +116,12 @@
       history[userHand]++;
       localStorage.setItem('jankenHistory', JSON.stringify(history));
 
-      const robotHand = getAIHand();
+      // ロボットの手を一旦隠す
+      document.getElementById('robot').textContent = "❓";
+      document.getElementById('result').textContent = "";
 
-      let result = '';
-      if (userHand === robotHand) {
-        result = 'あいこ';
-        score.draw++;
-      } else if (
-        (userHand === 'グー' && robotHand === 'チョキ') ||
-        (userHand === 'チョキ' && robotHand === 'パー') ||
-        (userHand === 'パー' && robotHand === 'グー')
-      ) {
-        result = 'あなたの勝ち';
-        score.win++;
-      } else {
-        result = 'ロボットの勝ち';
-        score.lose++;
-      }
+      // 0.8秒後に本当の手を表示
+      setTimeout(() => {
+        const robotHand = getAIHand();
 
-      // スコア保存
-      localStorage.setItem('jankenScore', JSON.stringify(score));
-
-      // 表示更新
-      document.getElementById('robot').textContent = robotHand;
-      document.getElementById('result').textContent = result;
-      updateScoreDisplay();
-    }
-
-    // スコアリセット
-    function resetScore() {
-      score = { win: 0, lose: 0, draw: 0 };
-      localStorage.setItem('jankenScore', JSON.stringify(score));
-      updateScoreDisplay();
-      alert("スコアをリセットしました");
-    }
-  </script>
-</body>
-</html>
+        let result = '';
